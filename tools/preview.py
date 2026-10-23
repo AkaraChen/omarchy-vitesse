@@ -13,8 +13,9 @@ Then resize to roughly 1600x1000 and drop the result in
 from __future__ import annotations
 
 import subprocess
-import tomllib
 from pathlib import Path
+
+from generate import VARIANTS, build_colors
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES_DIR = ROOT / "themes"
@@ -69,15 +70,15 @@ def swatches(colors: dict[str, str]) -> list[tuple[str, str]]:
 
 
 def render(slug: str, theme_dir: Path) -> None:
-    with (theme_dir / "colors.toml").open("rb") as handle:
-        colors = tomllib.load(handle)
+    design = build_colors(VARIANTS[slug])
+    terminal = build_colors(VARIANTS[slug], terminal=True)
 
     title = TITLES.get(slug, slug.replace("-", " ").title())
-    background = colors["background"]
-    foreground = colors["foreground"]
-    muted = colors["muted"]
-    surface = colors["lighter_background"]
-    accent = colors["accent"]
+    background = design["background"]
+    foreground = design["foreground"]
+    muted = design["muted"]
+    surface = design["lighter_background"]
+    accent = design["accent"]
 
     args = [
         "magick",
@@ -120,7 +121,7 @@ def render(slug: str, theme_dir: Path) -> None:
         muted,
         "-annotate",
         "+154+340",
-        f"Omarchy theme · {colors['mode']}",
+        f"Omarchy theme · {VARIANTS[slug]['mode']}",
         # Accent hex, top right
         "-gravity",
         "NorthEast",
@@ -142,7 +143,7 @@ def render(slug: str, theme_dir: Path) -> None:
         "line 150,380 1450,380",
     ]
 
-    for index, (label, value) in enumerate(swatches(colors)):
+    for index, (label, value) in enumerate(swatches(terminal)):
         row, column = divmod(index, 8)
         x = 150 + column * 166
         y = 430 + row * 160

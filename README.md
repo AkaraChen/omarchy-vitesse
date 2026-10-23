@@ -94,6 +94,18 @@ and add this to the theme directory:
 { "name": "Vitesse Dark", "extension": "antfu.theme-vitesse" }
 ```
 
+## Browser color
+
+`chromium.theme` is the browser's **design-system** color, not the terminal
+ANSI blue. Omarchy writes it into Chromium's `BrowserThemeColor` policy, and
+Chromium generates its own frame, toolbar and omnibox selection colors from it.
+Stock themes set this explicitly (Rose Pine ships a mauve), which is why their
+browser chrome and address-bar selection follow the theme.
+
+These themes ship a pale tint of Vitesse's keyword teal instead of reusing the
+page background, so the browser UI does not fall back to Chromium's default
+blue.
+
 ## Design notes
 
 `colors.toml` only carries semantic colors; Omarchy renders the terminal,
@@ -110,11 +122,16 @@ Palette decisions:
 - `orange` carries constants and numbers, `red` operators and errors.
 - Upstream foregrounds are alpha-blended (`#dbd7caee`); they are flattened to
   solid hex because `colors.toml` values must be opaque.
+- `blue` is a **design-system** color, not the terminal ANSI blue. Omarchy
+  renders links, functions, info icons and other UI from it, and Vitesse does
+  not use blue there, so it points at the keyword green. The terminal configs
+  under each theme keep the real xterm blue (`#296aa3` light, `#6394bf` dark)
+  for ANSI palette slot 4/12.
 
 ## Regenerate
 
-`tools/generate.py` is the source of truth. It writes every `colors.toml` and
-`neovim.lua`:
+`tools/generate.py` is the source of truth. It writes every `colors.toml`,
+`chromium.theme` and `neovim.lua`:
 
 ```bash
 python3 tools/generate.py
@@ -130,14 +147,20 @@ them with real screenshots when convenient.
 themes/
   vitesse-<variant>/
     colors.toml
+    chromium.theme
+    alacritty.toml
+    foot.ini
+    ghostty.conf
+    kitty.conf
     neovim.lua
     preview.png
 tools/
-  generate.py     # palette + generated files
-  preview.py      # placeholder preview cards
+  generate.py       # palette + generated files
+  preview.py        # placeholder preview cards
+  templates/        # terminal templates (palette only, no font/window settings)
 extras/
-  astronvim.lua   # adapter for AstroNvim users
-install.sh        # symlink themes into ~/.config/omarchy/themes
+  astronvim.lua     # adapter for AstroNvim users
+install.sh          # symlink themes into ~/.config/omarchy/themes
 ```
 
 ## Credits
