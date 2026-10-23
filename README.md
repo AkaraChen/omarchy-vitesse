@@ -72,9 +72,16 @@ Omarchy's stock Neovim configuration loads it through the usual symlink:
 ```
 
 If you use a different Neovim distribution (AstroNvim, a hand-written config,
-`nvim -u NONE`, ...), that symlink is not present and the file is ignored. Add
-the spec to your own plugin list instead; for AstroNvim, put the plugin in
-`lua/plugins/` and set `colorscheme = "vitesse"` in `astroui` opts.
+`nvim -u NONE`, ...), that symlink is not present and the file is ignored. For
+AstroNvim there is a ready-made adapter:
+
+```bash
+cp extras/astronvim.lua ~/.config/nvim/lua/plugins/vitesse.lua
+```
+
+It reads `~/.local/state/omarchy/current/theme.name` at startup, picks the
+matching Vitesse variant, and points `astroui` at `vitesse`. Restart Neovim
+after switching the Omarchy theme.
 
 ## VS Code
 
@@ -128,6 +135,8 @@ themes/
 tools/
   generate.py     # palette + generated files
   preview.py      # placeholder preview cards
+extras/
+  astronvim.lua   # adapter for AstroNvim users
 install.sh        # symlink themes into ~/.config/omarchy/themes
 ```
 
