@@ -19,7 +19,7 @@ their normal counterparts, as they do upstream.
 ## Install
 
 ```bash
-git clone <repo-url> ~/Developer/omarchy-vitesse
+git clone https://github.com/AkaraChen/omarchy-vitesse.git ~/Developer/omarchy-vitesse
 cd ~/Developer/omarchy-vitesse
 ./install.sh
 ```
