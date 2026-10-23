@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""Generate the Omarchy themes for the Vitesse palette.
+
+The palette in this file is the single source of truth. Run it after editing:
+
+    python3 tools/generate.py
+
+`--check` compares the generated files with what is on disk and exits non-zero
+when they differ, which is useful before committing.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+THEMES_DIR = ROOT / "themes"
+
+# Syntax colors shared by the three dark variants, taken from
+# antfu/vscode-theme-vitesse's Vitesse Dark.
+DARK_SYNTAX = {
+    "red": "#cb7676",      # operators, storage, errors
+    "yellow": "#e6cc77",   # warnings, escapes, regexp escapes
+    "orange": "#c99076",   # constants, numbers
+    "green": "#4d9375",    # keywords, tags, booleans
+    "cyan": "#5eaab5",     # primitives, builtins
+    "blue": "#6394bf",     # types, namespaces
+    "magenta": "#d9739f",  # special keywords
+    "brown": "#8a6259",    # Vitesse has no brown; close to its constants
+}
+
+# Syntax colors shared by the two light variants, from Vitesse Light.
+LIGHT_SYNTAX = {
+    "red": "#ab5959",
+    "yellow": "#bda437",
+    "orange": "#a65e2b",
+    "green": "#1e754f",
+    "cyan": "#2993a3",
+    "blue": "#296aa3",
+    "magenta": "#a13865",
+    "brown": "#8a5a3b",
+}
+
+# Per-variant surfaces. Everything else is shared with the syntax palette.
+VARIANTS = {
+    "vitesse-light": {
+        "mode": "light",
+        "nvim": "light",
+        "syntax": LIGHT_SYNTAX,
+        "colors": {
+            "accent": "#1e754f",
+            "selection": "#eaeaea",
+            "muted": "#a0ada0",
+            "background": "#ffffff",
+            "dark_background": "#f7f7f4",
+            "darker_background": "#eeeeea",
+            "lighter_background": "#f4f3ee",
+            "foreground": "#393a34",
+            "dark_foreground": "#999999",
+            "light_foreground": "#5b5c52",
+            "bright_foreground": "#2b2c26",
+        },
+    },
+    "vitesse-light-soft": {
+        "mode": "light",
+        "nvim": "light-soft",
+        "syntax": LIGHT_SYNTAX,
+        "colors": {
+            "accent": "#1e754f",
+            "selection": "#dedcd7",
+            "muted": "#a0ada0",
+            "background": "#f1f0e9",
+            "dark_background": "#e9e7de",
+            "darker_background": "#dfdcd2",
+            "lighter_background": "#e7e5db",
+            "foreground": "#393a34",
+            "dark_foreground": "#999999",
+            "light_foreground": "#5b5c52",
+            "bright_foreground": "#2b2c26",
+        },
+    },
+    "vitesse-dark": {
+        "mode": "dark",
+        "nvim": "dark",
+        "syntax": DARK_SYNTAX,
+        "colors": {
+            "accent": "#4d9375",
+            "selection": "#272727",
+            "muted": "#758575",
+            "background": "#121212",
+            "dark_background": "#0d0d0d",
+            "darker_background": "#080808",
+            "lighter_background": "#181818",
+            "foreground": "#dbd7ca",
+            "dark_foreground": "#777777",
+            "light_foreground": "#e9e6db",
+            "bright_foreground": "#ffffff",
+        },
+    },
+    "vitesse-dark-soft": {
+        "mode": "dark",
+        "nvim": "dark-soft",
+        "syntax": DARK_SYNTAX,
+        "colors": {
+            "accent": "#4d9375",
+            "selection": "#353535",
+            "muted": "#758575",
+            "background": "#222222",
+            "dark_background": "#1c1c1c",
+            "darker_background": "#161616",
+            "lighter_background": "#292929",
+            "foreground": "#dbd7ca",
+            "dark_foreground": "#777777",
+            "light_foreground": "#e9e6db",
+            "bright_foreground": "#ffffff",
+        },
+    },
+    "vitesse-black": {
+        "mode": "dark",
+        "nvim": "black",
+        "syntax": DARK_SYNTAX,
+        "colors": {
+            "accent": "#4d9375",
+            "selection": "#1c1c1c",
+            "muted": "#758575",
+            "background": "#000000",
+            "dark_background": "#0a0a0a",
+            "darker_background": "#050505",
+            "lighter_background": "#121212",
+            "foreground": "#dbd7ca",
+            "dark_foreground": "#777777",
+            "light_foreground": "#e9e6db",
+            "bright_foreground": "#ffffff",
+        },
+    },
+}
+
+COLOR_ORDER = (
+    "accent",
+    "selection",
+    "selection_background",
+    "selection_foreground",
+    "muted",
+    "background",
+    "dark_background",
+    "darker_background",
+    "lighter_background",
+    "foreground",
+    "dark_foreground",
+    "light_foreground",
+    "bright_foreground",
+    "red",
+    "yellow",
+    "orange",
+    "green",
+    "cyan",
+    "blue",
+    "magenta",
+    "brown",
+    "bright_red",
+    "bright_yellow",
+    "bright_green",
+    "bright_cyan",
+    "bright_blue",
+    "bright_magenta",
+)
+
+NEOVIM_TEMPLATE = """-- Generated by tools/generate.py; edit the generator instead.
+return {{
+  {{
+    "qshan-li/neovim-theme-vitesse",
+    lazy = false,
+    priority = 1000,
+    opts = {{ theme = "{variant}" }},
+  }},
+  {{
+    "LazyVim/LazyVim",
+    opts = {{ colorscheme = "vitesse" }},
+  }},
+}}
+"""
+
+
+def build_colors(variant: dict) -> dict[str, str]:
+    colors = dict(variant["colors"])
+    colors.update(variant["syntax"])
+
+    # Vitesse deliberately keeps the bright ANSI colors identical to the
+    # normal ones, so mirror them rather than lightening them.
+    for name in ("red", "yellow", "green", "cyan", "blue", "magenta"):
+        colors[f"bright_{name}"] = variant["syntax"][name]
+
+    colors["selection_background"] = colors["selection"]
+    colors["selection_foreground"] = colors["foreground"]
+    return colors
+
+
+def render_colors_toml(slug: str, variant: dict) -> str:
+    colors = build_colors(variant)
+    missing = [key for key in COLOR_ORDER if key not in colors]
+    if missing:
+        raise SystemExit(f"{slug}: missing colors: {', '.join(missing)}")
+
+    for key, value in colors.items():
+        if len(value) != 7 or not value.startswith("#"):
+            raise SystemExit(f"{slug}: {key} is not a 6-digit hex color: {value}")
+
+    lines = [f'mode = "{variant["mode"]}"', ""]
+    lines.extend(f'{key} = "{colors[key]}"' for key in COLOR_ORDER)
+    return "\n".join(lines) + "\n"
+
+
+def render_neovim_lua(variant: dict) -> str:
+    return NEOVIM_TEMPLATE.format(variant=variant["nvim"])
+
+
+def outputs() -> dict[Path, str]:
+    files: dict[Path, str] = {}
+    for slug, variant in VARIANTS.items():
+        theme_dir = THEMES_DIR / slug
+        files[theme_dir / "colors.toml"] = render_colors_toml(slug, variant)
+        files[theme_dir / "neovim.lua"] = render_neovim_lua(variant)
+    return files
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="exit non-zero if a generated file is missing or out of date",
+    )
+    args = parser.parse_args()
+
+    stale = []
+    for path, content in outputs().items():
+        if args.check:
+            if not path.is_file() or path.read_text() != content:
+                stale.append(path)
+            continue
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+
+    if args.check:
+        if stale:
+            print("Out of date:", *(f"\n  {path.relative_to(ROOT)}" for path in stale), file=sys.stderr)
+            return 1
+        print(f"All {len(VARIANTS)} themes are up to date.")
+        return 0
+
+    for slug in VARIANTS:
+        print(f"wrote {THEMES_DIR / slug}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
