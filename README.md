@@ -5,18 +5,33 @@
 
 Five variants, one per upstream mode:
 
-| Theme | Background | Foreground | Accent |
-| --- | --- | --- | --- |
-| `vitesse-light` | `#ffffff` | `#393a34` | `#1e754f` |
-| `vitesse-light-soft` | `#f1f0e9` | `#393a34` | `#1e754f` |
-| `vitesse-dark` | `#121212` | `#dbd7ca` | `#4d9375` |
-| `vitesse-dark-soft` | `#222222` | `#dbd7ca` | `#4d9375` |
-| `vitesse-black` | `#000000` | `#dbd7ca` | `#4d9375` |
+| Theme | Repository | Background | Foreground | Accent |
+| --- | --- | --- | --- | --- |
+| `vitesse-light` | [omarchy-vitesse-light-theme](https://github.com/AkaraChen/omarchy-vitesse-light-theme) | `#ffffff` | `#393a34` | `#1e754f` |
+| `vitesse-light-soft` | [omarchy-vitesse-light-soft-theme](https://github.com/AkaraChen/omarchy-vitesse-light-soft-theme) | `#f1f0e9` | `#393a34` | `#1e754f` |
+| `vitesse-dark` | [omarchy-vitesse-dark-theme](https://github.com/AkaraChen/omarchy-vitesse-dark-theme) | `#121212` | `#dbd7ca` | `#4d9375` |
+| `vitesse-dark-soft` | [omarchy-vitesse-dark-soft-theme](https://github.com/AkaraChen/omarchy-vitesse-dark-soft-theme) | `#222222` | `#dbd7ca` | `#4d9375` |
+| `vitesse-black` | [omarchy-vitesse-black-theme](https://github.com/AkaraChen/omarchy-vitesse-black-theme) | `#000000` | `#dbd7ca` | `#4d9375` |
 
 The accent is Vitesse's keyword green. Bright ANSI colors intentionally match
 their normal counterparts, as they do upstream.
 
 ## Install
+
+Each variant is published as its own colors-only theme repository, installable
+straight from Omarchy:
+
+```bash
+omarchy theme install https://github.com/AkaraChen/omarchy-vitesse-dark-theme
+```
+
+Those repositories carry `colors.toml`, `chromium.theme` and `preview.png` only.
+This repository is the source they are generated from, plus the tools and
+editor files that cannot ship in an installed theme.
+
+### From this repository
+
+To get the bundled `neovim.lua` and terminal configs as well:
 
 ```bash
 git clone https://github.com/AkaraChen/omarchy-vitesse.git ~/Developer/omarchy-vitesse
